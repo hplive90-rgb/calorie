@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>دفتر کالری من</title>
+
+<!-- PWA Meta -->
+<meta name="theme-color" content="#3478f6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="دفتر کالری">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="دفتر کالری">
+
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='42' fill='%233478f6'/%3E%3Ctext x='96' y='130' font-size='110' text-anchor='middle'%3E%F0%9F%8D%8E%3C/text%3E%3C/svg%3E">
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:12px;background:#f3f5f9;color:#263244;font-family:Tahoma,Arial,sans-serif;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+main{max-width:760px;margin:auto}
+h2{text-align:center}
+h3{margin-top:5px}
+nav{display:flex;gap:6px;margin:14px 0}
+button{font-family:inherit;border:0;border-radius:9px;padding:11px 13px;background:#3478f6;color:white;cursor:pointer;transition:opacity .15s}
+button:active{opacity:.75}
+nav button{flex:1;padding:12px 5px}
+.secondary{background:#e6ebf3;color:#273449}
+.danger{background:#d94a4a}
+.card{background:white;border-radius:14px;padding:15px;margin:12px 0;box-shadow:0 2px 8px #00000009}
+input,select{width:100%;padding:11px;border:1px solid #d6dce6;border-radius:8px;margin:6px 0 12px;font:inherit;background:white}
+label{font-size:13px;color:#596579}
+small,.hint{font-size:12px;color:#758094;line-height:1.9}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.item{border-bottom:1px solid #edf0f4;padding:12px 0}
+.item:last-child{border-bottom:0}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.actions button{flex:1}
+.total{font-size:25px;font-weight:bold;color:#188052}
+.hidden{display:none!important}
+.tag{display:inline-block;background:#edf3ff;color:#315fae;padding:4px 8px;border-radius:7px;font-size:12px}
+hr{border:0;border-top:1px solid #eee;margin:16px 0}
+.progress-wrap{background:#e8edf5;height:14px;border-radius:8px;overflow:hidden;margin:10px 0 6px}
+.progress-bar{height:100%;background:linear-gradient(90deg,#22c55e,#16a34a);width:0%;transition:width .35s}
+.progress-bar.over{background:linear-gradient(90deg,#f59e0b,#dc2626)}
+.goal-row{display:flex;gap:6px;align-items:center;margin-top:6px}
+.goal-row input{margin:0;padding:8px}
+.meal-group{margin-top:10px;padding:8px 10px;background:#f8fafc;border-radius:8px}
+.meal-group h4{margin:0 0 6px;font-size:13px;color:#475569}
+.meal-group .meal-total{float:left;font-size:12px;color:#188052;font-weight:bold}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#263244;color:white;padding:11px 18px;border-radius:9px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999;max-width:90%}
+.toast.show{opacity:1}
+.date-box{display:grid;grid-template-columns:1fr 1.4fr 1.1fr;gap:6px;margin:6px 0 4px}
+.date-box select{margin:0}
+.date-nav{display:flex;gap:6px;margin:6px 0 10px}
+.date-nav button{flex:1;padding:8px;font-size:12px}
+.date-nav .today-btn{background:#188052}
+.weekday{font-size:12px;color:#475569;text-align:center;margin-bottom:8px;background:#f1f5f9;padding:6px;border-radius:7px}
+.status-badge{font-size:11px;padding:3px 7px;border-radius:6px;background:#d1fae5;color:#065f46;display:inline-block;margin-bottom:8px}
+.status-badge.warn{background:#fef3c7;color:#92400e}
+.status-badge.err{background:#fee2e2;color:#991b1b}
+
+.install-banner{position:fixed;bottom:0;left:0;right:0;background:white;padding:12px;box-shadow:0 -4px 15px #0002;display:none;z-index:998;border-radius:14px 14px 0 0;max-width:760px;margin:0 auto}
+.install-banner.show{display:block;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.install-banner-content{display:flex;gap:10px;align-items:center}
+.install-banner-icon{width:48px;height:48px;border-radius:11px;flex-shrink:0;background:#3478f6;display:flex;align-items:center;justify-content:center;font-size:26px}
+.install-banner-text{flex:1;min-width:0}
+.install-banner-text strong{display:block;font-size:14px;margin-bottom:2px}
+.install-banner-text small{color:#758094;font-size:12px;line-height:1.4}
+.install-banner .actions{margin-top:10px;flex-wrap:nowrap}
+.install-banner .actions button{font-size:13px;padding:9px}
+
+@media(max-width:400px){nav button{font-size:12px}.grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<main>
+<h2>🍎 دفتر کالری من</h2>
+<div style="text-align:center"><span id="storageStatus" class="status-badge">در حال بررسی...</span></div>
+<nav>
+<button onclick="tab('bank')">بانک غذا</button>
+<button onclick="tab('diary')">کالری‌شماری</button>
+<button onclick="tab('backup')">اکسل / پشتیبان</button>
+</nav>
+
+<section id="bank">
+<div class="card">
+<h3 id="formTitle">ثبت غذای جدید</h3>
+<label>نام غذا</label>
+<input id="fname" placeholder="مثلاً نان سنگک">
+<label>کالری در هر ۱۰۰ گرم</label>
+<input id="fcal" type="number" min="0" step="any" inputmode="decimal" placeholder="۲۶۰">
+<p class="hint">وزن تقریبی هر واحد را بر حسب گرم وارد کن.</p>
+<div class="grid">
+<div><label>کف دست</label><input id="wpalm" type="number" min="0" step="any" inputmode="decimal" placeholder="۳۰"></div>
+<div><label>چای‌خوری</label><input id="wtea" type="number" min="0" step="any" inputmode="decimal" placeholder="۵"></div>
+<div><label>مرباخوری</label><input id="wdessert" type="number" min="0" step="any" inputmode="decimal" placeholder="۱۰"></div>
+<div><label>قوطی کبریت</label><input id="wmatch" type="number" min="0" step="any" inputmode="decimal" placeholder="۲۵"></div>
+</div>
+<div class="actions">
+<button onclick="saveFood()">ذخیره</button>
+<button class="secondary" onclick="resetForm()">لغو</button>
+</div>
+</div>
+<div class="card">
+<input id="bankSearch" placeholder="🔎 جست‌وجو" oninput="renderBank()">
+<div id="bankList"></div>
+</div>
+</section>
+
+<section id="diary" class="hidden">
+<div class="card">
+<h3>ثبت مصرف</h3>
+<label>تاریخ (شمسی)</label>
+<div class="date-box">
+  <select id="dDay" onchange="onDateChange()"></select>
+  <select id="dMonth" onchange="onDateChange()"></select>
+  <select id="dYear" onchange="onDateChange()"></select>
+</div>
+<div class="weekday" id="weekdayLabel"></div>
+<div class="date-nav">
+  <button class="secondary" onclick="shiftDate(-1)">◀ دیروز</button>
+  <button class="today-btn" onclick="goToday()">امروز</button>
+  <button class="secondary" onclick="shiftDate(1)">فردا ▶</button>
+</div>
+<label>غذا</label>
+<select id="foodChoice" onchange="onFoodChange()"></select>
+<label>واحد</label>
+<select id="unitChoice" onchange="updateAmountHint()">
+<option value="g">گرم</option>
+<option value="palm">کف دست</option>
+<option value="teaspoon">قاشق چای‌خوری</option>
+<option value="dessert">قاشق مرباخوری</option>
+<option value="matchbox">قوطی کبریت</option>
+</select>
+<label id="amountLabel">مقدار</label>
+<input id="amount" type="number" min="0" step="any" inputmode="decimal" placeholder="۱۵۰">
+<div class="hint" id="unitHint"></div>
+<label>وعده</label>
+<select id="meal">
+<option>صبحانه</option><option>میان‌وعده</option><option>ناهار</option>
+<option>عصرانه</option><option>شام</option><option>سایر</option>
+</select>
+<div class="actions">
+<button onclick="addEntry(true)">ثبت و بعدی</button>
+<button class="secondary" onclick="addEntry(false)">ثبت</button>
+</div>
+</div>
+
+<div class="card">
+<h3>جمع کالری</h3>
+<div class="total" id="dayTotal">۰ کالری</div>
+<div class="progress-wrap"><div class="progress-bar" id="dayProgress"></div></div>
+<div class="hint" id="goalHint"></div>
+<div class="goal-row">
+<label style="white-space:nowrap">هدف:</label>
+<input type="number" id="dailyGoal" min="0" step="any" inputmode="decimal" placeholder="۲۰۰۰" onchange="saveGoal();renderDiary()">
+</div>
+<hr>
+<div id="diaryList"></div>
+</div>
+</section>
+
+<section id="backup" class="hidden">
+<div class="card">
+<h3>Excel</h3>
+<div class="actions">
+<button onclick="exportExcel()">دانلود اکسل</button>
+<button class="secondary" onclick="document.getElementById('excelIn').click()">ورود از اکسل</button>
+</div>
+<input id="excelIn" type="file" accept=".xlsx,.xls" hidden onchange="importExcel(event)">
+<hr>
+<h3>پشتیبان JSON</h3>
+<div class="actions">
+<button class="secondary" onclick="exportJSON()">دانلود پشتیبان</button>
+<button class="secondary" onclick="document.getElementById('jsonIn').click()">بازیابی</button>
+</div>
+<input id="jsonIn" type="file" accept=".json" hidden onchange="importJSON(event)">
+<hr>
+<h3>نصب روی صفحه‌ی هوم</h3>
+<p class="hint" id="installHint">اگه مرورگرت پشتیبانی کنه، دکمه‌ی نصب ظاهر می‌شه.</p>
+<div class="actions">
+<button class="secondary" onclick="showInstallBanner()">راهنمای نصب</button>
+<button class="secondary" onclick="tryInstall()">نصب خودکار</button>
+</div>
+<hr>
+<h3>وضعیت PWA</h3>
+<div class="hint" id="pwaStatus">در حال بررسی...</div>
+</div>
+</section>
+</main>
+
+<div class="install-banner" id="installBanner">
+<div class="install-banner-content">
+  <div class="install-banner-icon">🍎</div>
+  <div class="install-banner-text">
+    <strong>دفتر کالری رو نصب کن</strong>
+    <small id="installBannerText">برای دسترسی سریع، به صفحه‌ی هوم اضافه کن</small>
+  </div>
+</div>
+<div class="actions">
+  <button onclick="tryInstall()" id="installBtn">نصب</button>
+  <button class="secondary" onclick="dismissInstall()">بعداً</button>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   ۱) ساخت و تزریق Manifest به صورت Blob (روش تضمینی برای کروم)
+   ========================================================= */
+(function injectManifest(){
+  const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#3478f6"/><text x="256" y="360" font-size="300" text-anchor="middle" font-family="Arial">🍎</text></svg>`;
+  const iconUrl = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(iconSvg)));
+
+  const manifest = {
+    name: "دفتر کالری من",
+    short_name: "کالری",
+    description: "دفتر کالری و بانک غذا",
+    start_url: ".",
+    scope: ".",
+    display: "standalone",
+    orientation: "portrait",
+    background_color: "#f3f5f9",
+    theme_color: "#3478f6",
+    dir: "rtl",
+    lang: "fa",
+    icons: [
+      { src: iconUrl, sizes: "192x192", type: "image/svg+xml", purpose: "any" },
+      { src: iconUrl, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+    ]
+  };
+
+  const blob = new Blob([JSON.stringify(manifest)], {type: "application/manifest+json"});
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("link");
+  link.rel = "manifest";
+  link.href = url;
+  document.head.appendChild(link);
+})();
+
+/* =========================================================
+   ۲) ثبت Service Worker (خالی، فقط برای عبور از شرط نصب)
+   ========================================================= */
+(function registerSW(){
+  if(!("serviceWorker" in navigator)) return;
+  // فقط روی https یا localhost کار می‌کنه
+  if(location.protocol !== "https:" && location.hostname !== "localhost"){
+    return;
+  }
+  const swCode = `
+    self.addEventListener('install', e => { self.skipWaiting(); });
+    self.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });
+    self.addEventListener('fetch', e => {
+      // پاسخ شبکه، و در صورت آفلاین از کش
+      e.respondWith(
+        fetch(e.request).catch(() => caches.match(e.request))
+      );
+    });
+  `;
+  const blob = new Blob([swCode], {type: "text/javascript"});
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(err=>{
+    console.warn("SW ثبت نشد:", err);
+  });
+})();
+
+/* =========================================================
+   ۳) PWA Install
+   ========================================================= */
+let deferredPrompt = null;
+const INSTALL_DISMISS_KEY = "calorie_install_dismissed";
+
+window.addEventListener("beforeinstallprompt", (e)=>{
+  e.preventDefault();
+  deferredPrompt = e;
+  el("pwaStatus").textContent = "✅ آماده‌ی نصب — دکمه‌ی نصب فعال شد";
+  el("pwaStatus").style.color = "#065f46";
+  if(!localStorage.getItem(INSTALL_DISMISS_KEY)){
+    showInstallBanner();
+  }
+});
+
+window.addEventListener("appinstalled", ()=>{
+  toast("✅ نصب شد! از صفحه‌ی هوم بازش کن");
+  dismissInstall();
+  deferredPrompt = null;
+  el("pwaStatus").textContent = "✅ نصب شده";
+});
+
+function showInstallBanner(){
+  el("installBanner").classList.add("show");
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if(isIOS && !deferredPrompt){
+    el("installBannerText").textContent = "در Safari دکمه‌ی Share ← Add to Home Screen رو بزن";
+    el("installBtn").style.display = "none";
+  }else if(!deferredPrompt){
+    el("installBannerText").textContent = "از منوی مرورگر گزینه‌ی Install app رو بزن";
+    el("installBtn").style.display = "none";
+  }
+}
+
+function dismissInstall(){
+  el("installBanner").classList.remove("show");
+  try{ localStorage.setItem(INSTALL_DISMISS_KEY, "1"); }catch(e){}
+}
+
+async function tryInstall(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if(outcome === "accepted"){
+      toast("✅ نصب شد");
+    }else{
+      toast("نصب لغو شد");
+    }
+    deferredPrompt = null;
+    dismissInstall();
+  }else{
+    const ua = navigator.userAgent;
+    const isIOS = /iPad|iPhone|iPod/.test(ua);
+    if(isIOS){
+      alert("در Safari:\n۱. Share را بزن\n۲. Add to Home Screen\n۳. Add");
+    }else if(location.protocol !== "https:" && location.hostname !== "localhost"){
+      alert("⚠️ برای نصب، صفحه باید از طریق HTTPS باز شود.\n\nراه‌حل: فایل رو روی GitHub Pages بذار یا از یه هاست رایگان استفاده کن.\n\nآدرس فعلی: " + location.protocol);
+    }else{
+      alert("از منوی مرورگر (سه نقطه) گزینه‌ی Install app یا Add to Home Screen رو انتخاب کن.");
+    }
+  }
+}
+
+/* =========================================================
+   تاریخ شمسی
+   ========================================================= */
+const PERSIAN_MONTHS = ["فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور","مهر","آبان","آذر","دی","بهمن","اسفند"];
+const PERSIAN_WEEKDAYS = ["یکشنبه","دوشنبه","سه‌شنبه","چهارشنبه","پنجشنبه","جمعه","شنبه"];
+const PERSIAN_DIGITS = ["۰","۱","۲","۳","۴","۵","۶","۷","۸","۹"];
+function toFa(n){ return String(n).replace(/\d/g, d=>PERSIAN_DIGITS[+d]); }
+function div(a,b){ return ~~(a/b); }
+
+function jalCal(jy){
+  const breaks = [-61,9,38,199,426,686,756,818,1111,1181,1210,1635,2060,2097,2192,2262,2324,2394,2456,3178];
+  const bl = breaks.length, gy = jy+621;
+  let leapJ = -14, jp = breaks[0], jm, jump=0, leap, n, i;
+  if(jy < jp || jy >= breaks[bl-1]) throw new Error("سال خارج از محدوده");
+  for(i=1; i<bl; i+=1){
+    jm = breaks[i]; jump = jm - jp;
+    if(jy < jm) break;
+    leapJ = leapJ + div(jump,33)*8 + div(jump%33,4);
+    jp = jm;
+  }
+  n = jy - jp;
+  leapJ = leapJ + div(n,33)*8 + div((n%33)+3,4);
+  if(jump%33===4 && jump-n===4) leapJ += 1;
+  const leapG = div(gy,4) - div((div(gy,100)+1)*3,4) - 150;
+  const march = 20 + leapJ - leapG;
+  if(jump - n < 6) n = n - jump + div(jump+4,33)*33;
+  leap = ((n+1)%33 - 1) % 4;
+  if(leap === -1) leap = 4;
+  return { leap, gy, march };
+}
+function j2d(jy, jm, jd){
+  const r = jalCal(jy);
+  return g2d(r.gy, 3, r.march) + (jm-1)*31 - div(jm,7)*(jm-7) + jd - 1;
+}
+function d2j(jdn){
+  let gy = d2g(jdn).gy, jy = gy - 621;
+  const r = jalCal(jy);
+  let jdn1f = g2d(gy, 3, r.march), jd, jm, k;
+  k = jdn - jdn1f;
+  if(k >= 0){
+    if(k <= 185){ jm = 1 + div(k,31); jd = (k%31) + 1; return { jy, jm, jd }; }
+    k -= 186;
+  }else{
+    jy -= 1; k += 179;
+    if(r.leap === 1) k += 1;
+  }
+  jm = 7 + div(k,30); jd = (k%30) + 1;
+  return { jy, jm, jd };
+}
+function g2d(gy, gm, gd){
+  let d = div((gy+div(gm-8,6)+100100)*1461,4) + div(153*((gm+9)%12)+2,5) + gd - 34840408;
+  d = d - div(div(gy+100100+div(gm-8,6),100)*3,4) + 752;
+  return d;
+}
+function d2g(jdn){
+  let j = 4*jdn + 139361631;
+  j = j + div(div(4*jdn+183187720,146097)*3,4)*4 - 3908;
+  const i = div((j%1461),4)*5 + 308;
+  const gd = div((i%153),5) + 1;
+  const gm = (div(i,153)%12) + 1;
+  const gy = div(j,1461) - 100100 + div(8-gm,6);
+  return { gy, gm, gd };
+}
+function isoToJalali(iso){
+  const [y,m,d] = iso.split("-").map(Number);
+  return d2j(g2d(y,m,d));
+}
+function jalaliToIso(jy, jm, jd){
+  const g = d2g(j2d(jy,jm,jd));
+  return g.gy + "-" + String(g.gm).padStart(2,"0") + "-" + String(g.gd).padStart(2,"0");
+}
+function jalaliString(iso){
+  const j = isoToJalali(iso);
+  return toFa(j.jy) + "/" + toFa(String(j.jm).padStart(2,"0")) + "/" + toFa(String(j.jd).padStart(2,"0"));
+}
+function weekdayName(iso){
+  const [y,m,d] = iso.split("-").map(Number);
+  return PERSIAN_WEEKDAYS[new Date(y, m-1, d).getDay()];
+}
+function todayISO(){
+  const d = new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function jalaliMonthLength(jy, jm){
+  if(jm <= 6) return 31;
+  if(jm <= 11) return 30;
+  return jalCal(jy).leap === 1 ? 30 : 29;
+}
+
+/* =========================================================
+   ذخیره‌سازی
+   ========================================================= */
+const STORAGE_KEY = "my_calorie_book_v5";
+const GOAL_KEY = "my_calorie_book_goal_v1";
+const OLD_KEYS = ["my_calorie_book_v4","my_calorie_book_v3","my_calorie_book_v2","my_calorie_book"];
+
+let memoryStorage = {};
+let storageMode = "unknown";
+
+function testLocalStorage(){
+  try{
+    const k = "__test__" + Math.random();
+    localStorage.setItem(k, "1");
+    localStorage.removeItem(k);
+    return true;
+  }catch(e){ return false; }
+}
+function initStorage(){
+  storageMode = testLocalStorage() ? "localStorage" : "memory";
+  const badge = el("storageStatus");
+  if(storageMode === "localStorage"){
+    badge.textContent = "✅ ذخیره‌سازی فعال";
+    badge.className = "status-badge";
+  }else{
+    badge.textContent = "⚠️ ذخیره‌سازی موقت";
+    badge.className = "status-badge warn";
+  }
+}
+function sGet(key){
+  if(storageMode === "localStorage"){
+    try{ return localStorage.getItem(key); }catch(e){ return null; }
+  }
+  return memoryStorage[key] || null;
+}
+function sSet(key, val){
+  if(storageMode === "localStorage"){
+    try{ localStorage.setItem(key, val); return true; }catch(e){ return false; }
+  }
+  memoryStorage[key] = val;
+  return true;
+}
+
+/* =========================================================
+   دیتا
+   ========================================================= */
+const units = {
+  g:{label:"گرم",weight:1},
+  palm:{label:"کف دست",field:"palm"},
+  teaspoon:{label:"قاشق چای‌خوری",field:"teaspoon"},
+  dessert:{label:"قاشق مرباخوری",field:"dessert"},
+  matchbox:{label:"قوطی کبریت",field:"matchbox"}
+};
+
+const defaults = [
+  ["نان سنگک",260,30,0,0,30],["نان لواش",290,20,0,0,20],["نان بربری",270,40,0,0,40],
+  ["نان تست",265,25,0,0,25],["برنج پخته",130,0,5,10,0],["برنج خام",360,0,5,10,0],
+  ["ماکارونی پخته",155,0,5,10,0],["سیب‌زمینی آبپز",87,0,5,10,0],
+  ["سیب‌زمینی سرخ‌کرده",310,0,5,10,0],["سینه مرغ پخته",165,30,0,0,30],
+  ["مرغ کبابی",190,30,0,0,30],["گوشت گوساله پخته",250,30,0,0,30],
+  ["ماهی پخته",140,30,0,0,30],["تخم‌مرغ آبپز",155,50,5,10,50],
+  ["پنیر سفید",265,25,5,10,25],["ماست",60,0,5,10,0],["شیر",60,0,5,10,0],
+  ["کره",720,0,5,10,0],["روغن زیتون",884,0,5,10,0],["روغن مایع",884,0,5,10,0],
+  ["گردو",654,0,5,10,0],["بادام",579,0,5,10,0],["موز",89,0,5,10,0],
+  ["سیب",52,0,5,10,0],["پرتقال",47,0,5,10,0],["خرما",282,0,5,10,0],
+  ["عسل",304,0,7,15,0],["مربا",250,0,7,15,0],["قند",400,0,4,8,0],
+  ["شکر",387,0,4,8,0],["خیار",15,0,5,10,0],["گوجه‌فرنگی",18,0,5,10,0],
+  ["کاهو",15,0,5,10,0],["شکلات",535,0,5,10,0],["بیسکویت ساده",450,0,5,10,0],
+  ["جو دوسر خشک",389,0,5,10,0]
+];
+
+let db = { foods:[], entries:[] };
+let dailyGoal = 0;
+let editId = null;
+let currentDate = todayISO();
+
+function newId(){
+  if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return Date.now().toString(36) + Math.random().toString(36).slice(2,10);
+}
+function el(id){ return document.getElementById(id); }
+function esc(s){
+  return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function toast(msg, ms){
+  const t = el("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(t._tid);
+  t._tid = setTimeout(()=>t.classList.remove("show"), ms||2200);
+}
+function save(){
+  const ok = sSet(STORAGE_KEY, JSON.stringify(db));
+  if(!ok){ toast("⚠️ ذخیره نشد!", 3500); return false; }
+  return true;
+}
+function seedFoods(){
+  return defaults.map(a=>({
+    id:newId(), name:a[0], cal:a[1],
+    palm:a[2], teaspoon:a[3], dessert:a[4], matchbox:a[5]
+  }));
+}
+function validDB(d){
+  return d && typeof d==="object" && Array.isArray(d.foods) && Array.isArray(d.entries);
+}
+function normalizeFood(f){
+  return {
+    id: f.id || newId(),
+    name: String(f.name||"").trim() || "بدون نام",
+    cal: Number(f.cal)||0,
+    palm: Number(f.palm)||0,
+    teaspoon: Number(f.teaspoon)||0,
+    dessert: Number(f.dessert)||0,
+    matchbox: Number(f.matchbox)||0
+  };
+}
+function load(){
+  let raw = sGet(STORAGE_KEY);
+  if(!raw){
+    for(const k of OLD_KEYS){
+      const old = sGet(k);
+      if(old){
+        try{
+          const parsed = JSON.parse(old);
+          if(validDB(parsed)){
+            db = parsed;
+            db.foods = db.foods.map(normalizeFood);
+            save();
+            toast("✅ بازیابی شد");
+            loadGoal();
+            return;
+          }
+        }catch(e){ console.error(e); }
+      }
+    }
+  }
+  if(!raw){
+    db = { foods: seedFoods(), entries: [] };
+    save();
+    loadGoal();
+    return;
+  }
+  try{
+    const parsed = JSON.parse(raw);
+    if(!validDB(parsed)) throw new Error("bad");
+    db = parsed;
+    db.foods = db.foods.map(normalizeFood);
+  }catch(e){
+    console.error(e);
+    db = { foods: seedFoods(), entries: [] };
+    save();
+  }
+  loadGoal();
+}
+function saveGoal(){
+  dailyGoal = Number(el("dailyGoal").value) || 0;
+  sSet(GOAL_KEY, String(dailyGoal));
+}
+function loadGoal(){
+  const g = Number(sGet(GOAL_KEY));
+  dailyGoal = Number.isFinite(g) && g>0 ? g : 0;
+  el("dailyGoal").value = dailyGoal || "";
+}
+
+/* =========================================================
+   تب‌ها
+   ========================================================= */
+function tab(name){
+  ["bank","diary","backup"].forEach(x=>el(x).classList.toggle("hidden", x!==name));
+  if(name==="bank") renderBank();
+  if(name==="diary"){ renderFoodSelect(); initDateInputs(); renderDiary(); }
+}
+
+/* =========================================================
+   بانک غذا
+   ========================================================= */
+function resetForm(){
+  editId = null;
+  el("formTitle").textContent = "ثبت غذای جدید";
+  ["fname","fcal","wpalm","wtea","wdessert","wmatch"].forEach(x=>el(x).value="");
+}
+function saveFood(){
+  const name = el("fname").value.trim();
+  const calRaw = el("fcal").value;
+  const cal = Number(calRaw);
+  if(!name){ alert("نام غذا را وارد کن."); return; }
+  if(calRaw==="" || !Number.isFinite(cal) || cal<0){ alert("کالری معتبر وارد کن."); return; }
+  const weights = {};
+  [["palm","wpalm"],["teaspoon","wtea"],["dessert","wdessert"],["matchbox","wmatch"]].forEach(([k,id])=>{
+    const v = el(id).value;
+    weights[k] = v==="" ? 0 : Number(v);
+    if(!Number.isFinite(weights[k]) || weights[k]<0) weights[k] = 0;
+  });
+  if(editId){
+    const f = db.foods.find(f=>f.id===editId);
+    if(f) Object.assign(f, { name, cal, ...weights });
+  }else{
+    db.foods.push({ id:newId(), name, cal, ...weights });
+  }
+  if(!save()) return;
+  toast(editId ? "✅ ویرایش شد" : "✅ اضافه شد");
+  resetForm();
+  renderBank();
+  renderFoodSelect();
+}
+function editFood(id){
+  const f = db.foods.find(f=>f.id===id);
+  if(!f) return;
+  editId = id;
+  el("formTitle").textContent = "ویرایش غذا";
+  el("fname").value = f.name;
+  el("fcal").value = f.cal;
+  el("wpalm").value = f.palm || "";
+  el("wtea").value = f.teaspoon || "";
+  el("wdessert").value = f.dessert || "";
+  el("wmatch").value = f.matchbox || "";
+  window.scrollTo({ top:0, behavior:"smooth" });
+}
+function deleteFood(id){
+  if(!confirm("حذف شود؟")) return;
+  db.foods = db.foods.filter(f=>f.id!==id);
+  save();
+  renderBank();
+  renderFoodSelect();
+  toast("🗑 حذف شد");
+}
+function renderBank(){
+  const q = el("bankSearch").value.trim().toLowerCase();
+  const foods = db.foods.filter(f=>f.name.toLowerCase().includes(q));
+  el("bankList").innerHTML = foods.map(f=>`
+    <div class="item">
+      <b>${esc(f.name)}</b><br>
+      <span class="tag">${f.cal} کالری / ۱۰۰ گرم</span>
+      <div class="hint">
+        کف دست: ${f.palm||"—"} · چای‌خوری: ${f.teaspoon||"—"} ·
+        مرباخوری: ${f.dessert||"—"} · کبریت: ${f.matchbox||"—"}
+      </div>
+      <div class="actions">
+        <button class="secondary" onclick="editFood('${f.id}')">ویرایش</button>
+        <button class="danger" onclick="deleteFood('${f.id}')">حذف</button>
+      </div>
+    </div>`).join("") || "<small>غذایی پیدا نشد.</small>";
+}
+
+/* =========================================================
+   تاریخ
+   ========================================================= */
+function initDateInputs(){
+  const j = isoToJalali(currentDate);
+  const yearNow = isoToJalali(todayISO()).jy;
+  const yearSel = el("dYear");
+  yearSel.innerHTML = "";
+  for(let y = yearNow-5; y <= yearNow+1; y++){
+    const opt = document.createElement("option");
+    opt.value = y;
+    opt.textContent = toFa(y);
+    yearSel.appendChild(opt);
+  }
+  const monthSel = el("dMonth");
+  monthSel.innerHTML = "";
+  PERSIAN_MONTHS.forEach((m, i)=>{
+    const opt = document.createElement("option");
+    opt.value = i+1;
+    opt.textContent = m;
+    monthSel.appendChild(opt);
+  });
+  yearSel.value = j.jy;
+  monthSel.value = j.jm;
+  renderDayOptions(j.jy, j.jm, j.jd);
+  updateWeekdayLabel();
+}
+function renderDayOptions(jy, jm, selectedDay){
+  const daySel = el("dDay");
+  const len = jalaliMonthLength(jy, jm);
+  daySel.innerHTML = "";
+  for(let d=1; d<=len; d++){
+    const opt = document.createElement("option");
+    opt.value = d;
+    opt.textContent = toFa(d);
+    daySel.appendChild(opt);
+  }
+  daySel.value = Math.min(selectedDay, len);
+}
+function onDateChange(){
+  const jy = +el("dYear").value;
+  const jm = +el("dMonth").value;
+  let jd = +el("dDay").value;
+  const len = jalaliMonthLength(jy, jm);
+  if(jd > len){ jd = len; renderDayOptions(jy, jm, jd); }
+  else if(el("dDay").options.length !== len) renderDayOptions(jy, jm, jd);
+  currentDate = jalaliToIso(jy, jm, jd);
+  updateWeekdayLabel();
+  renderDiary();
+}
+function updateWeekdayLabel(){
+  el("weekdayLabel").textContent = "📅 " + weekdayName(currentDate) + " — " + jalaliString(currentDate);
+}
+function shiftDate(days){
+  const j = isoToJalali(currentDate);
+  const jdn = j2d(j.jy, j.jm, j.jd) + days;
+  const nj = d2j(jdn);
+  currentDate = jalaliToIso(nj.jy, nj.jm, nj.jd);
+  initDateInputs();
+  renderDiary();
+}
+function goToday(){
+  currentDate = todayISO();
+  initDateInputs();
+  renderDiary();
+}
+
+/* =========================================================
+   کالری‌شماری
+   ========================================================= */
+function renderFoodSelect(){
+  const cur = el("foodChoice").value;
+  el("foodChoice").innerHTML = db.foods.map(f=>
+    `<option value="${f.id}">${esc(f.name)} — ${f.cal} کالری</option>`
+  ).join("");
+  if(cur && db.foods.some(f=>f.id===cur)) el("foodChoice").value = cur;
+  updateAmountHint();
+}
+function onFoodChange(){
+  el("amount").value = "";
+  updateAmountHint();
+}
+function updateAmountHint(){
+  const f = db.foods.find(f=>f.id===el("foodChoice").value);
+  const u = el("unitChoice").value;
+  const w = u==="g" ? 1 : (f ? Number(f[units[u].field])||0 : 0);
+  el("amountLabel").textContent = "مقدار (" + units[u].label + ")";
+  if(u==="g") el("unitHint").textContent = "هر گرم = ۱ گرم";
+  else if(w>0) el("unitHint").textContent = `هر ${units[u].label} ≈ ${w} گرم`;
+  else el("unitHint").textContent = "⚠️ وزن این واحد تعریف نشده";
+}
+function addEntry(keepGoing){
+  const f = db.foods.find(f=>f.id===el("foodChoice").value);
+  const u = el("unitChoice").value;
+  const amountRaw = el("amount").value;
+  const amount = Number(amountRaw);
+  if(!f){ alert("غذا انتخاب نشده."); return; }
+  if(amountRaw==="" || !Number.isFinite(amount) || amount<=0){ alert("مقدار معتبر وارد کن."); return; }
+  const weight = u==="g" ? 1 : Number(f[units[u].field])||0;
+  if(weight<=0){ alert("وزن این واحد ثبت نشده."); return; }
+  const grams = amount * weight;
+  const entry = {
+    id: newId(), foodId: f.id, name: f.name, cal100: f.cal,
+    unit: u, unitLabel: units[u].label, amount, unitWeight: weight,
+    grams, cal: f.cal * grams / 100, meal: el("meal").value,
+    date: currentDate
+  };
+  db.entries.push(entry);
+  if(!save()){ db.entries.pop(); return; }
+  toast("✅ " + Math.round(entry.cal) + " کالری ثبت شد");
+  el("amount").value = "";
+  if(keepGoing) el("amount").focus();
+  renderDiary();
+}
+function deleteEntry(id){
+  if(!confirm("حذف شود؟")) return;
+  db.entries = db.entries.filter(e=>e.id!==id);
+  save();
+  renderDiary();
+}
+function renderDiary(){
+  const entries = db.entries.filter(e=>e.date===currentDate);
+  const total = entries.reduce((s,e)=>s+Number(e.cal||0), 0);
+  el("dayTotal").textContent = total.toLocaleString("fa-IR",{maximumFractionDigits:1}) + " کالری";
+  const bar = el("dayProgress");
+  if(dailyGoal>0){
+    const pct = Math.min(100, (total/dailyGoal)*100);
+    bar.style.width = pct + "%";
+    bar.classList.toggle("over", total>dailyGoal);
+    const diff = dailyGoal - total;
+    el("goalHint").textContent = diff>=0
+      ? `${Math.round(diff)} کالری باقی‌مانده`
+      : `${Math.round(Math.abs(diff))} کالری بیش از هدف`;
+  }else{
+    bar.style.width = "0%";
+    bar.classList.remove("over");
+    el("goalHint").textContent = "هدف روزانه را وارد کن";
+  }
+  const order = ["صبحانه","میان‌وعده","ناهار","عصرانه","شام","سایر"];
+  const groups = {};
+  entries.forEach(e=>{
+    const m = e.meal || "سایر";
+    (groups[m] = groups[m] || []).push(e);
+  });
+  const mealNames = order.filter(m=>groups[m]);
+  if(mealNames.length===0){
+    el("diaryList").innerHTML = "<small>چیزی ثبت نشده.</small>";
+    return;
+  }
+  el("diaryList").innerHTML = mealNames.map(m=>{
+    const list = groups[m];
+    const mTotal = list.reduce((s,e)=>s+Number(e.cal||0),0);
+    const items = list.map(e=>`
+      <div class="item">
+        <b>${esc(e.name)}</b>
+        <div>${e.amount} ${esc(e.unitLabel||"گرم")} <small>(≈${Number(e.grams).toFixed(0)} گرم)</small></div>
+        <div><b>${Number(e.cal).toLocaleString("fa-IR",{maximumFractionDigits:0})} کالری</b></div>
+        <button class="danger" style="margin-top:7px" onclick="deleteEntry('${e.id}')">حذف</button>
+      </div>`).join("");
+    return `<div class="meal-group">
+      <h4>${esc(m)} <span class="meal-total">${Math.round(mTotal)} کالری</span></h4>
+      ${items}
+    </div>`;
+  }).join("");
+}
+
+/* =========================================================
+   اکسل
+   ========================================================= */
+function exportExcel(){
+  if(!window.XLSX){ alert("کتابخانه اکسل نیست."); return; }
+  const wb = XLSX.utils.book_new();
+  const foods = db.foods.map(f=>({
+    "نام": f.name, "کالری در ۱۰۰ گرم": f.cal,
+    "کف دست": f.palm||0, "چایخوری": f.teaspoon||0,
+    "مرباخوری": f.dessert||0, "قوطی کبریت": f.matchbox||0
+  }));
+  const entries = db.entries.map(e=>({
+    "تاریخ شمسی": jalaliString(e.date), "تاریخ میلادی": e.date,
+    "وعده": e.meal, "غذا": e.name, "واحد": e.unitLabel||"گرم",
+    "مقدار": e.amount, "وزن (گرم)": e.grams, "کالری": e.cal
+  }));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(foods), "بانک غذا");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(entries), "گزارش");
+  XLSX.writeFile(wb, "دفتر_کالری.xlsx");
+}
+function importExcel(event){
+  const file = event.target.files[0]; if(!file) return;
+  if(!window.XLSX){ alert("کتابخانه اکسل نیست."); return; }
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    try{
+      const wb = XLSX.read(ev.target.result, {type:"array"});
+      const sh = wb.Sheets["بانک غذا"] || wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sh);
+      let count = 0;
+      rows.forEach(r=>{
+        const name = r["نام"] ?? r["نام غذا"] ?? r["name"];
+        const cal = Number(r["کالری در ۱۰۰ گرم"] ?? r["کالری_۱۰۰_گرم"] ?? r["cal"]);
+        if(!name || !Number.isFinite(cal) || cal<0) return;
+        db.foods.push({
+          id: newId(), name: String(name), cal,
+          palm: Number(r["کف دست"]||r["کف_دست_گرم"]||0),
+          teaspoon: Number(r["چایخوری"]||r["چایخوری_گرم"]||0),
+          dessert: Number(r["مرباخوری"]||r["مرباخوری_گرم"]||0),
+          matchbox: Number(r["قوطی کبریت"]||r["قوطی_کبریت_گرم"]||0)
+        });
+        count++;
+      });
+      if(!save()) return;
+      renderBank();
+      renderFoodSelect();
+      alert(count + " غذا وارد شد.");
+    }catch(e){ console.error(e); alert("فایل خوانده نشد."); }
+  };
+  reader.readAsArrayBuffer(file);
+  event.target.value = "";
+}
+
+/* =========================================================
+   JSON
+   ========================================================= */
+function download(blob, name){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1500);
+}
+function exportJSON(){
+  const payload = { ...db, dailyGoal, exportedAt: new Date().toISOString() };
+  download(new Blob([JSON.stringify(payload,null,2)], {type:"application/json"}), "پشتیبان_کالری.json");
+}
+function importJSON(event){
+  const file = event.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    try{
+      const d = JSON.parse(ev.target.result);
+      if(!validDB(d)) throw new Error("bad");
+      if(!confirm("اطلاعات فعلی جایگزین شود؟")) return;
+      db = d;
+      db.foods = db.foods.map(normalizeFood);
+      if(Number.isFinite(d.dailyGoal) && d.dailyGoal>0){
+        dailyGoal = Number(d.dailyGoal);
+        sSet(GOAL_KEY, String(dailyGoal));
+        el("dailyGoal").value = dailyGoal;
+      }
+      save();
+      renderBank();
+      renderFoodSelect();
+      renderDiary();
+      toast("✅ بازیابی شد");
+    }catch(e){ console.error(e); alert("فایل معتبر نیست."); }
+  };
+  reader.readAsText(file);
+  event.target.value = "";
+}
+
+/* =========================================================
+   راه‌اندازی
+   ========================================================= */
+initStorage();
+load();
+initDateInputs();
+renderBank();
+renderFoodSelect();
+renderDiary();
+
+// چک وضعیت PWA
+setTimeout(()=>{
+  const status = el("pwaStatus");
+  const isHttps = location.protocol === "https:" || location.hostname === "localhost";
+  const hasSW = "serviceWorker" in navigator;
+  if(!isHttps){
+    status.innerHTML = "⚠️ صفحه از طریق <b>file://</b> باز شده — نصب کار نمی‌کنه.<br>راه‌حل: روی GitHub Pages یا یه هاست HTTPS بذار.";
+    status.style.color = "#92400e";
+  }else if(!hasSW){
+    status.textContent = "⚠️ مرورگر از Service Worker پشتیبانی نمی‌کنه";
+    status.style.color = "#92400e";
+  }else if(window.matchMedia("(display-mode: standalone)").matches){
+    status.textContent = "✅ به‌صورت اپ نصب‌شده اجرا می‌شه";
+    status.style.color = "#065f46";
+  }else if(deferredPrompt){
+    status.textContent = "✅ آماده‌ی نصب";
+    status.style.color = "#065f46";
+  }else{
+    status.textContent = "⏳ منتظر رویداد نصب... (اگه https هستی و نیامد، از منوی مرورگر Install app رو بزن)";
+  }
+}, 1500);
+</script>
+</body>
+  </html>
